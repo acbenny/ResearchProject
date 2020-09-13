@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: ne-service
+  name: ne-service
+  namespace: microservices
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ne-service
+  template:
+    metadata:
+      labels:
+        app: ne-service
+    spec:
+      containers:
+      - image: devbox:32000/ne-service
+        name: ne-service
+        resources: {}
+        env:
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: ne-service
+  name: ne-service
+  namespace: microservices
+spec:
+  ports:
+  - name: 8080-8080
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: ne-service
+  type: ClusterIP

@@ -1,0 +1,17 @@
+POST http://localhost:8080/ne HTTP/1.1
+content-type: application/json
+
+{
+    "neId": 100,
+    "model": "7750 SR-12"
+}
+
+###
+
+POST http://localhost:8080/ne HTTP/1.1
+content-type: application/json
+
+{
+    "neId": 101,
+    "model": "7750 SR-12 EEA"
+}

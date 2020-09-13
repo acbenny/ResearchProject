@@ -1,0 +1,22 @@
+global:
+  datacenter: local
+
+ui:
+  service:
+    type: 'NodePort'
+
+client:
+  enabled: true
+
+server:
+  replicas: 1
+  bootstrapExpect: 1
+  disruptionBudget:
+    enabled: true
+    maxUnavailable: 0
+
+syncCatalog:
+  enabled: true
+  default: false
+  toConsul: true
+  toK8S: false
