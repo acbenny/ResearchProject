@@ -3,6 +3,7 @@ spring:
     name: ne-service
   cloud:
     consul:
+      enabled: true
       host: ${HOST_IP:localhost}
       discovery:
         instance-id: ${spring.cloud.client.hostname}

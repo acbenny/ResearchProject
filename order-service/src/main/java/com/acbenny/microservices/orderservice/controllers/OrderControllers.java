@@ -18,7 +18,7 @@ public class OrderControllers {
     @Autowired
     private OrderRepository repo;
 
-    @PostMapping
+    @PostMapping("/create")
     public void createOrdre(@RequestBody Order ord){
         repo.createOrder(ord);
     }

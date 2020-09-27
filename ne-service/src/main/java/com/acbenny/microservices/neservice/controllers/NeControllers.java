@@ -1,6 +1,7 @@
 package com.acbenny.microservices.neservice.controllers;
 
 import com.acbenny.microservices.neservice.models.NetworkElement;
+import com.acbenny.microservices.neservice.models.Order;
 import com.acbenny.microservices.neservice.repositories.NeRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,7 @@ public class NeControllers {
     @Autowired
     private NeRepository repo;
 
-    @PostMapping
+    @PostMapping("/create")
     public void createNE(@RequestBody NetworkElement ne){
         repo.createNE(ne);
     }
@@ -33,4 +34,13 @@ public class NeControllers {
         return repo.getNE(neId);
     }
 
+    @PostMapping("/assign/route/{neId}")
+    public NetworkElement route(@PathVariable int neId,@RequestBody Order order) {
+        return repo.route(neId, order);
+    }
+
+    @PostMapping("/unassign/route")
+    public void unroute(@RequestBody NetworkElement ne) {
+        repo.unroute(ne);
+    }
 }
