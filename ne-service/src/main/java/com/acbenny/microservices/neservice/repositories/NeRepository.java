@@ -68,32 +68,40 @@ public class NeRepository {
     public NetworkElement[] getAllNEs() {
         String sql = "SELECT FROM NetworkElement";
         db.activateOnCurrentThread();
-        OResultSet rs = db.command(sql);
-        return rs.vertexStream().map(x -> new NetworkElement(x.getProperty("neId"), x.getProperty("model"),null))
+        try(OResultSet rs = db.command(sql);) {
+            return rs.vertexStream().map(x -> new NetworkElement(x.getProperty("neId"), x.getProperty("model"),null))
                 .toArray(NetworkElement[]::new);
+        }
     }
 
     private OVertex getNEFromDB(int neId) {
         String sql = "SELECT FROM NetworkElement WHERE neId = ?";
         db.activateOnCurrentThread();
-        OResultSet rs = db.command(sql, neId);
-        return rs.vertexStream().findFirst().orElseThrow();
+        try(OResultSet rs = db.command(sql, neId);) {
+            return rs.vertexStream().findFirst().orElseThrow();
+        }
     }
 
-    public NetworkElement getNE(int neId) {
+    public NetworkElement getNEWithOrderFilter(int neId, long ordId) {
         OVertex ovNE = getNEFromDB(neId);
-
         NetworkElement ne = new NetworkElement(ovNE.getProperty("neId"), ovNE.getProperty("model"));
         for (OVertex ovPort : ovNE.getVertices(ODirection.OUT, "Ports")){
             Port p = new Port(ovPort.getProperty("logicalPortName"));
             for (OVertex ovTag : ovPort.getVertices(ODirection.OUT, "Tags")) {
-                TagAllocation tag = new TagAllocation(ovTag.getProperty("tagId"),
+                if (ordId == 0 || ordId == (long)ovTag.getProperty("orderId")) {
+                    TagAllocation tag = new TagAllocation(ovTag.getProperty("tagId"),
                                             new Order(ovTag.getProperty("orderId"), ovTag.getProperty("serviceId")));
-                p.addTag(tag);
+                    p.addTag(tag);
+                }
             }
-            ne.addPort(p);
+            if (ordId == 0 || p.getTags().size()>0)
+                ne.addPort(p);
         }
         return ne;
+	}
+
+    public NetworkElement getNE(int neId) {
+        return getNEWithOrderFilter(neId,0);
     }
 
     public NetworkElement route(int neId, Order o) { 
@@ -129,13 +137,14 @@ public class NeRepository {
         db.activateOnCurrentThread();
         ne.getPorts().forEach((pKey,port) -> {
             port.getTags().forEach((tKey,tag) -> {
-                OResultSet rs = db.command(sql, pKey, tKey, ne.getNeId());
-                rs.vertexStream()
-                    .filter(ovTag -> tag.getOrd().getServiceId().equals(ovTag.getProperty("serviceId")) && tag.getOrd().getOrderId() == (long)ovTag.getProperty("orderId"))
-                    .forEach(ovTag -> {
-                        ovTag.delete();
-                        ovTag.save();
-                    });
+                try(OResultSet rs = db.command(sql, pKey, tKey, ne.getNeId());) {
+                    rs.vertexStream()
+                        .filter(ovTag -> tag.getOrd().getServiceId().equals(ovTag.getProperty("serviceId")) && tag.getOrd().getOrderId() == (long)ovTag.getProperty("orderId"))
+                        .forEach(ovTag -> {
+                            ovTag.delete();
+                            ovTag.save();
+                        });
+                }
             });
         });
 	}

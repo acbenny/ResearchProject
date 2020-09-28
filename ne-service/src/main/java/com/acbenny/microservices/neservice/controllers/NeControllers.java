@@ -34,6 +34,11 @@ public class NeControllers {
         return repo.getNE(neId);
     }
 
+    @GetMapping("/{neId}/{ordId}")
+    public NetworkElement getNEOrder(@PathVariable int neId, @PathVariable long ordId) {
+        return repo.getNEWithOrderFilter(neId,ordId);
+    }
+
     @PostMapping("/assign/route/{neId}")
     public NetworkElement route(@PathVariable int neId,@RequestBody Order order) {
         return repo.route(neId, order);
