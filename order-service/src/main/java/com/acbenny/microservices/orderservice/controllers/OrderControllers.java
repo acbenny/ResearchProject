@@ -1,5 +1,7 @@
 package com.acbenny.microservices.orderservice.controllers;
 
+import java.util.Set;
+
 import com.acbenny.microservices.orderservice.models.Order;
 import com.acbenny.microservices.orderservice.repositories.OrderRepository;
 
@@ -22,7 +24,17 @@ public class OrderControllers {
     public void createOrdre(@RequestBody Order ord){
         repo.createOrder(ord);
     }
-    
+
+    @PostMapping("/route/{serviceId}")
+    public void routeOrder(@PathVariable String serviceId,@RequestBody Set<Integer> neIDs){
+        repo.routeOrder(serviceId,neIDs);
+    }
+
+    @PostMapping("/unroute/{serviceId}")
+    public void unrouteOrder(@PathVariable String serviceId,@RequestBody Set<Integer> neIDs){
+        repo.unrouteOrder(serviceId,neIDs);
+    }
+
     @GetMapping("/")
     public Order[] getAllOrders() {
         return repo.getAllOrders();

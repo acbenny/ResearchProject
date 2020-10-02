@@ -17,7 +17,7 @@ public class DBConfiguration {
     @Autowired
     private DiscoveryClient discoveryClient;
 
-    @Value("${db.name:ne-service}")
+    @Value("${db.name:${spring.application.name}}")
     private String databaseName;
 
     @Value("${db.user:admin}")

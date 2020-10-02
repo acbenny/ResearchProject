@@ -97,6 +97,10 @@ public class NeRepository {
             if (ordId == 0 || p.getTags().size()>0)
                 ne.addPort(p);
         }
+        if (ne.getPorts().size()==0) {
+            throw new NoSuchElementException("Ord id "+ordId+" not found on "+neId); 
+        }
+
         return ne;
 	}
 

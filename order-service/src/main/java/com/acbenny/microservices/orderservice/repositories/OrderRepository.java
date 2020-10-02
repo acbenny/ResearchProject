@@ -1,9 +1,11 @@
 package com.acbenny.microservices.orderservice.repositories;
 
 import java.util.Optional;
+import java.util.Set;
 
 import com.acbenny.microservices.orderservice.models.Order;
 import com.orientechnologies.orient.core.db.ODatabaseSession;
+import com.orientechnologies.orient.core.metadata.schema.OType;
 import com.orientechnologies.orient.core.metadata.sequence.OSequence;
 import com.orientechnologies.orient.core.record.OVertex;
 import com.orientechnologies.orient.core.sql.executor.OResultSet;
@@ -15,6 +17,9 @@ import org.springframework.stereotype.Repository;
 public class OrderRepository {
 
     private ODatabaseSession db;
+    
+    @Autowired
+    public NEServiceClient neService;
 
     @Autowired
     public void setDb(ODatabaseSession db) {
@@ -37,7 +42,7 @@ public class OrderRepository {
             OSequence seq = db.getMetadata().getSequenceLibrary().getSequence("svcIdSeq");
             ord.setServiceId(String.format("%s%07d", "SVC", seq.next()));
         } else {
-            ovPrev = getLatestOrder(ord.getServiceId()).orElseThrow();
+            ovPrev = getLatestOrder(ord.getServiceId()).orElse(null);
         }
         ov.setProperty("serviceId", ord.getServiceId());
         ov.save();
@@ -51,7 +56,7 @@ public class OrderRepository {
         String sql = "SELECT FROM Orders";
         db.activateOnCurrentThread();
         OResultSet rs = db.command(sql);
-        return rs.vertexStream().map(x -> new Order(x.getProperty("orderId"), x.getProperty("serviceId")))
+        return rs.vertexStream().map(x -> new Order(x.getProperty("orderId"), x.getProperty("serviceId"), null))
                 .toArray(Order[]::new);
     }
 
@@ -60,7 +65,7 @@ public class OrderRepository {
         db.activateOnCurrentThread();
         OResultSet rs = db.command(sql, ordId);
 
-        return rs.vertexStream().findFirst().map(x -> new Order(x.getProperty("orderId"), x.getProperty("serviceId")))
+        return rs.vertexStream().findFirst().map(x -> new Order(x.getProperty("orderId"), x.getProperty("serviceId"), x.getProperty("neIds")))
                 .orElseThrow();
     }
 
@@ -68,7 +73,7 @@ public class OrderRepository {
         String sql = "SELECT FROM Orders WHERE serviceId = ?";
         db.activateOnCurrentThread();
         OResultSet rs = db.command(sql, serviceId);
-        return rs.vertexStream().map(x -> new Order(x.getProperty("orderId"), x.getProperty("serviceId")))
+        return rs.vertexStream().map(x -> new Order(x.getProperty("orderId"), x.getProperty("serviceId") , x.getProperty("neIds")))
                 .toArray(Order[]::new);
     }
 
@@ -80,8 +85,28 @@ public class OrderRepository {
     }
 
 	public Order getLatestServiceOrder(String serviceId) {
-        return getLatestOrder(serviceId)
-                    .map(x -> new Order(x.getProperty("orderId"), x.getProperty("serviceId")))
-                    .orElseThrow();
+        OVertex ov = getLatestOrder(serviceId).orElseThrow();
+        return new Order(ov.getProperty("orderId"), ov.getProperty("serviceId"), ov.getProperty("neIds"));
+	}
+
+	public void routeOrder(String serviceId, Set<Integer> neIDs) {
+        OVertex ov = getLatestOrder(serviceId).orElseThrow();
+        Order ord = new Order(ov.getProperty("orderId"), ov.getProperty("serviceId"),null);
+        neIDs.forEach(neId -> neService.route(neId, ord));
+        ov.setProperty("neIds", neIDs, OType.EMBEDDEDSET);
+        ov.save();
+	}
+
+	public void unrouteOrder(String serviceId, Set<Integer> neIDs) {
+        OVertex ov = getLatestOrder(serviceId).orElseThrow();
+        Order ord = new Order(ov.getProperty("orderId"), ov.getProperty("serviceId"), ov.getProperty("neIds"));
+        ord.getNeIds().forEach(ne -> {
+            if (neIDs.isEmpty() || neIDs.contains(ne)) {
+                neService.unroute(neService.getOrdDetails(ne, ord.getOrderId()));
+                ord.removeNE(ne);
+            }
+        });
+        ov.setProperty("neIds", neIDs, OType.EMBEDDEDSET);
+        ov.save();
 	}
 }

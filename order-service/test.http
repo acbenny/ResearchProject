@@ -1,4 +1,4 @@
-POST http://localhost:8080/order HTTP/1.1
+POST http://devbox:8080/ne/assign/route/100:8080/order/create HTTP/1.1
 content-type: application/json
 
 {
@@ -6,13 +6,29 @@ content-type: application/json
 
 ###
 
-POST http://localhost:8080/order HTTP/1.1
+POST http://devbox:8080/order/create HTTP/1.1
 content-type: application/json
 
 {
-    "serviceId": "SVC0000002"
+    "serviceId": "SVC0000000",
+    "orderId": 100
 }
 
 ###
 
-GET http://localhost:8080/order/id/101
+POST http://devbox:8080/order/route/SVC0000000 HTTP/1.1
+content-type: application/json
+
+[100]
+
+
+###
+
+POST http://devbox:8080/order/unroute/SVC0000000 HTTP/1.1
+content-type: application/json
+
+[]
+
+###
+
+GET http://devbox:8080/order/id/101
