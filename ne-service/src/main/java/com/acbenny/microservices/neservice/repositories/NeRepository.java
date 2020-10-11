@@ -1,13 +1,17 @@
 package com.acbenny.microservices.neservice.repositories;
 
 import java.util.NoSuchElementException;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import javax.annotation.PreDestroy;
 
 import com.acbenny.microservices.neservice.models.NetworkElement;
 import com.acbenny.microservices.neservice.models.Order;
 import com.acbenny.microservices.neservice.models.Port;
 import com.acbenny.microservices.neservice.models.TagAllocation;
+import com.orientechnologies.common.collection.OMultiCollectionIterator;
 import com.orientechnologies.orient.core.db.ODatabaseSession;
 import com.orientechnologies.orient.core.record.ODirection;
 import com.orientechnologies.orient.core.record.OEdge;
@@ -34,13 +38,14 @@ public class NeRepository {
         this.db = db;
     }
 
+    @PreDestroy
     public void close() {
         db.activateOnCurrentThread();
         db.close();
     }
 
-    private boolean isTagUsed(Stream<OEdge> str, int tag){
-        return str.anyMatch(e -> tag == (int)e.getProperty("tagId"));
+    private boolean isTagUsed(Stream<OEdge> str, int tag) {
+        return str.anyMatch(e -> tag == (int) e.getProperty("tagId"));
     }
 
     public void createNE(NetworkElement ne) {
@@ -68,18 +73,45 @@ public class NeRepository {
     public NetworkElement[] getAllNEs() {
         String sql = "SELECT FROM NetworkElement";
         db.activateOnCurrentThread();
-        try(OResultSet rs = db.command(sql);) {
-            return rs.vertexStream().map(x -> new NetworkElement(x.getProperty("neId"), x.getProperty("model"),null))
-                .toArray(NetworkElement[]::new);
+        try (OResultSet rs = db.command(sql);) {
+            return rs.vertexStream().map(x -> new NetworkElement(x.getProperty("neId"), x.getProperty("model"), null))
+                    .toArray(NetworkElement[]::new);
         }
     }
 
     private OVertex getNEFromDB(int neId) {
         String sql = "SELECT FROM NetworkElement WHERE neId = ?";
         db.activateOnCurrentThread();
-        try(OResultSet rs = db.command(sql, neId);) {
+        try (OResultSet rs = db.command(sql, neId);) {
             return rs.vertexStream().findFirst().orElseThrow();
         }
+    }
+
+    private OVertex getOrder(Order o, boolean create) {
+        String sql = "SELECT FROM Order WHERE orderId = ?";
+        db.activateOnCurrentThread();
+        try(OResultSet rs = db.command(sql, o.getOrderId());) {
+            return rs.vertexStream().findFirst().orElseGet(() -> {
+                if (create) {
+                    OVertex ov = db.newVertex("Order");
+                    ov.setProperty("serviceId", o.getServiceId());
+                    ov.setProperty("orderId",o.getOrderId());
+                    ov.save();
+                    return ov;
+                } else
+                    return null;
+            });
+        }
+    }
+
+    private Predicate<OVertex> orderFilter (long ordId) {
+        return ov -> {
+            for (OVertex ovOrder : ov.getVertices(ODirection.IN, "allocatedTags")) {
+                if (ovOrder.getProperty("orderId").equals(ordId))
+                    return true;
+            }
+            return false;
+        };
     }
 
     public NetworkElement getNEWithOrderFilter(int neId, long ordId) {
@@ -88,10 +120,12 @@ public class NeRepository {
         for (OVertex ovPort : ovNE.getVertices(ODirection.OUT, "Ports")){
             Port p = new Port(ovPort.getProperty("logicalPortName"));
             for (OVertex ovTag : ovPort.getVertices(ODirection.OUT, "Tags")) {
-                if (ordId == 0 || ordId == (long)ovTag.getProperty("orderId")) {
-                    TagAllocation tag = new TagAllocation(ovTag.getProperty("tagId"),
-                                            new Order(ovTag.getProperty("orderId"), ovTag.getProperty("serviceId")));
-                    p.addTag(tag);
+                for (OVertex ovOrder : ovTag.getVertices(ODirection.IN,"allocatedTags")){
+                    Order ord = new Order(ovOrder.getProperty("orderId"), ovOrder.getProperty("serviceId"));
+                    if (ordId == 0 || ordId == ord.getOrderId()) {
+                        TagAllocation tag = new TagAllocation(ovTag.getProperty("outerTag"),ord);
+                        p.addTag(tag);
+                    }
                 }
             }
             if (ordId == 0 || p.getTags().size()>0)
@@ -108,28 +142,29 @@ public class NeRepository {
         return getNEWithOrderFilter(neId,0);
     }
 
-    public NetworkElement route(int neId, Order o) { 
+    public NetworkElement route(int neId, String portInput, Order o) { 
         OVertex ovNE = getNEFromDB(neId);
         NetworkElement ne = null;
         
         for (OVertex ovPort : ovNE.getVertices(ODirection.OUT, "Ports")){
-            Iterable<OEdge> ovTags = ovPort.getEdges(ODirection.OUT, "Tags");
-            for (int i = tagStart; i <= tagEnd; i++) {
-                Stream<OEdge> str = StreamSupport.stream(ovTags.spliterator(), false);
-                if (!isTagUsed(str,i)){
-                    OVertex ovTag = db.newVertex("Tag");
-                    ovTag.setProperty("tagId", i);
-                    ovTag.setProperty("serviceId", o.getServiceId());
-                    ovTag.setProperty("orderId",o.getOrderId());
-                    ovTag.save();
-                    OEdge oe = ovPort.addEdge(ovTag, "Tags");
-                    oe.setProperty("tagId", i);
-                    oe.save();
-                    Port port = new Port(ovPort.getProperty("logicalPortName"));
-                    port.addTag(new TagAllocation(i,o)); 
-                    ne = new NetworkElement(ovNE.getProperty("neId"), ovNE.getProperty("model"));
-                    ne.addPort(port);
-                    return ne;
+            if (portInput == null || portInput.equals(ovPort.getProperty("logicalPortName"))) {
+                Iterable<OEdge> ovTags = ovPort.getEdges(ODirection.OUT, "Tags");
+                for (int i = tagStart; i <= tagEnd; i++) {
+                    Stream<OEdge> str = StreamSupport.stream(ovTags.spliterator(), false);
+                    if (!isTagUsed(str,i)){
+                        OVertex ovTag = db.newVertex("Tag");
+                        ovTag.setProperty("outerTag", i);
+                        ovTag.save();
+                        OEdge oe = ovPort.addEdge(ovTag, "Tags");
+                        oe.setProperty("tagId", i);
+                        oe.save();
+                        getOrder(o,true).addEdge(ovTag, "allocatedTags").save();
+                        Port port = new Port(ovPort.getProperty("logicalPortName"));
+                        port.addTag(new TagAllocation(i,o)); 
+                        ne = new NetworkElement(ovNE.getProperty("neId"), ovNE.getProperty("model"));
+                        ne.addPort(port);
+                        return ne;
+                    }
                 }
             }
         }
@@ -143,13 +178,24 @@ public class NeRepository {
             port.getTags().forEach((tKey,tag) -> {
                 try(OResultSet rs = db.command(sql, pKey, tKey, ne.getNeId());) {
                     rs.vertexStream()
-                        .filter(ovTag -> tag.getOrd().getServiceId().equals(ovTag.getProperty("serviceId")) && tag.getOrd().getOrderId() == (long)ovTag.getProperty("orderId"))
+                        .filter(orderFilter(tag.getOrd().getOrderId()))
                         .forEach(ovTag -> {
                             ovTag.delete();
                             ovTag.save();
                         });
+                    cleanUpOrder(tag.getOrd());
                 }
             });
         });
 	}
+
+    private void cleanUpOrder(Order o) {
+        OVertex ov = getOrder(o, false);
+        if (ov != null) {
+            if (((OMultiCollectionIterator<OEdge>)ov.getEdges(ODirection.BOTH)).size() == 0) {
+                ov.delete();
+                ov.save();
+            }
+        }
+    }
 }

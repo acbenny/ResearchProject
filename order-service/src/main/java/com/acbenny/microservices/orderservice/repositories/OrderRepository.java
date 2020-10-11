@@ -3,6 +3,8 @@ package com.acbenny.microservices.orderservice.repositories;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.annotation.PreDestroy;
+
 import com.acbenny.microservices.orderservice.models.Order;
 import com.orientechnologies.orient.core.db.ODatabaseSession;
 import com.orientechnologies.orient.core.metadata.schema.OType;
@@ -26,6 +28,7 @@ public class OrderRepository {
         this.db = db;
     }
 
+    @PreDestroy
     public void close() {
         db.activateOnCurrentThread();
         db.close();

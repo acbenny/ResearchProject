@@ -8,6 +8,16 @@ content-type: application/json
 
 ###
 
+POST http://devbox:8080/ne/assign/route/100/5 HTTP/1.1
+content-type: application/json
+
+{
+    "orderId": 100,
+    "serviceId": "SVC0000000"
+}
+
+###
+
 POST http://devbox:8080/ne/assign/route/100 HTTP/1.1
 content-type: application/json
 

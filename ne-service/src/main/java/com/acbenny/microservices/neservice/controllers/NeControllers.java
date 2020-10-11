@@ -40,8 +40,13 @@ public class NeControllers {
     }
 
     @PostMapping("/assign/route/{neId}")
-    public NetworkElement route(@PathVariable int neId,@RequestBody Order order) {
-        return repo.route(neId, order);
+    public NetworkElement route(@PathVariable int neId, @RequestBody Order order) {
+        return repo.route(neId, null, order);
+    }
+
+    @PostMapping("/assign/route/{neId}/{port}")
+    public NetworkElement routeOnPort(@PathVariable int neId, @PathVariable String port, @RequestBody Order order) {
+        return repo.route(neId, "1/1/"+port, order);
     }
 
     @PostMapping("/unassign/route")
