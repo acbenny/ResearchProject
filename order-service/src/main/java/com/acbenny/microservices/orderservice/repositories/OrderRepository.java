@@ -92,11 +92,20 @@ public class OrderRepository {
         return new Order(ov.getProperty("orderId"), ov.getProperty("serviceId"), ov.getProperty("neIds"));
 	}
 
-	public void routeOrder(String serviceId, Set<Integer> neIDs) {
+	public void routeOrder(String serviceId, Set<String> neIDs) {
         OVertex ov = getLatestOrder(serviceId).orElseThrow();
-        Order ord = new Order(ov.getProperty("orderId"), ov.getProperty("serviceId"),null);
-        neIDs.forEach(neId -> neService.route(neId, ord));
-        ov.setProperty("neIds", neIDs, OType.EMBEDDEDSET);
+        Order ord = new Order(ov.getProperty("orderId"), ov.getProperty("serviceId"));
+        neIDs.forEach(neList -> {
+            String[] nePort = neList.split(":");
+            Integer neId = Integer.valueOf(nePort[0]);
+            if (nePort.length==1)
+                neService.route(neId, ord);
+            else
+                neService.route(neId, nePort[1], ord);
+            
+            ord.addNE(neId);
+            });
+        ov.setProperty("neIds", ord.getNeIds(), OType.EMBEDDEDSET);
         ov.save();
 	}
 

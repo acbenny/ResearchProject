@@ -1,14 +1,13 @@
-POST http://devbox:8080/ne/create HTTP/1.1
+POST http://devbox:18080/ne/create HTTP/1.1
 content-type: application/json
 
 {
-    "neId": 100,
     "model": "7750 SR-12 MSE"
 }
 
 ###
 
-POST http://devbox:8080/ne/assign/route/100/5 HTTP/1.1
+POST http://devbox:18080/ne/assign/route/100/5 HTTP/1.1
 content-type: application/json
 
 {
@@ -18,7 +17,7 @@ content-type: application/json
 
 ###
 
-POST http://devbox:8080/ne/assign/route/100 HTTP/1.1
+POST http://devbox:18080/ne/assign/route/100 HTTP/1.1
 content-type: application/json
 
 {
@@ -28,7 +27,7 @@ content-type: application/json
 
 ###
 
-POST http://devbox:8080/ne/unassign/route HTTP/1.1
+POST http://devbox:18080/ne/unassign/route HTTP/1.1
 content-type: application/json
 
 {

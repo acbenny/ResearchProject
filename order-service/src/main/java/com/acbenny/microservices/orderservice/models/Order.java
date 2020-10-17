@@ -15,6 +15,11 @@ public class Order {
 
     public Order() {}
 
+    public Order(long orderId, String serviceId) {
+        this.orderId = orderId;
+        this.serviceId = serviceId;
+    }
+
     public Order(long orderId, String serviceId, Set<Integer> neIds) {
         this.orderId = orderId;
         this.serviceId = serviceId;
@@ -43,6 +48,10 @@ public class Order {
 
     public void setNeIds(Set<Integer> neIds) {
         this.neIds = neIds;
+    }
+
+    public void addNE(Integer neId) {
+        neIds.add(neId);
     }
 
     public void removeNE(Integer neId) {

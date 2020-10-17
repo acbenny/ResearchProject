@@ -26,7 +26,7 @@ public class OrderControllers {
     }
 
     @PostMapping("/route/{serviceId}")
-    public void routeOrder(@PathVariable String serviceId,@RequestBody Set<Integer> neIDs){
+    public void routeOrder(@PathVariable String serviceId,@RequestBody Set<String> neIDs){
         repo.routeOrder(serviceId,neIDs);
     }
 
