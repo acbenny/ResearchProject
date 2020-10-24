@@ -6,11 +6,12 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+@JsonInclude(Include.NON_EMPTY)
 public class Order {
     long orderId;
     String serviceId;
+    String vpnName;
     
-    @JsonInclude(Include.NON_EMPTY)
     Set<Integer> neIds = new LinkedHashSet<>();
 
     public Order() {}
@@ -20,9 +21,10 @@ public class Order {
         this.serviceId = serviceId;
     }
 
-    public Order(long orderId, String serviceId, Set<Integer> neIds) {
+    public Order(long orderId, String serviceId, String vpnName, Set<Integer> neIds) {
         this.orderId = orderId;
         this.serviceId = serviceId;
+        this.vpnName = vpnName;
         this.neIds = neIds;
     }
 
@@ -56,5 +58,13 @@ public class Order {
 
     public void removeNE(Integer neId) {
         neIds.remove(neId);
+    }
+
+    public String getVpnName() {
+        return vpnName;
+    }
+
+    public void setVpnName(String vpnName) {
+        this.vpnName = vpnName;
     }
 }
