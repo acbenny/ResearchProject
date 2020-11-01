@@ -1,17 +1,26 @@
 package com.acbenny.microservices.neservice.models;
 
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+@JsonInclude(Include.NON_EMPTY)
 public class NetworkElement {
     int neId;
     String model;
+    
+    @JsonInclude(Include.NON_DEFAULT)
+    boolean createDeleteCommunity;
 
-    @JsonInclude(Include.NON_EMPTY)
     Map<String,Port> ports = new LinkedHashMap<String,Port>();
+
+    Set<VRF> vrfs = new HashSet<>();
+    Map<Integer,String> filterIds = new TreeMap<>();
 
     public NetworkElement(){
         for (int i = 1;i<=10;i++){
@@ -56,5 +65,48 @@ public class NetworkElement {
 
     public void addPort(Port p) {
         this.ports.put(p.getPort(),p);
+    }
+
+    public Set<VRF> getVrfs() {
+        return vrfs;
+    }
+
+    public void setVrfs(Set<VRF> vrfs) {
+        this.vrfs = vrfs;
+    }
+
+    public Map<Integer, String> getFilterIds() {
+        return filterIds;
+    }
+
+    public void setFilterIds(Map<Integer, String> filterIds) {
+        this.filterIds = filterIds;
+    }
+
+    public void addVrf(VRF vrf, int interfaceId, String serviceId) {
+        if (vrfs.contains(vrf)) {
+            for (VRF v : vrfs) {
+                if (v.equals(vrf)){
+                    vrfs.remove(v);
+                    v.addInterface(interfaceId, serviceId);
+                    vrfs.add(v);
+                }
+            }
+        } else {
+            vrf.addInterface(interfaceId, serviceId);
+            vrfs.add(vrf);
+        }
+    }
+
+    public void addFilter(int filterId, String serviceId) {
+        filterIds.put(filterId, serviceId);
+    }
+
+    public boolean isCreateDeleteCommunity() {
+        return createDeleteCommunity;
+    }
+
+    public void setCreateDeleteCommunity(boolean flag) {
+        this.createDeleteCommunity = flag;
     }
 }

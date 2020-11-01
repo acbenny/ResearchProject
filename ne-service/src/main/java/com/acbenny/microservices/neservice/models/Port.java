@@ -10,7 +10,7 @@ public class Port implements Comparable<Port> {
     String port;
     
     @JsonInclude(Include.NON_EMPTY)
-    Map<Integer,TagAllocation> tags = new TreeMap<Integer,TagAllocation>();
+    Map<Integer,Tag> tags = new TreeMap<Integer,Tag>();
 
     public Port() {}
 
@@ -18,7 +18,7 @@ public class Port implements Comparable<Port> {
         this.port = port;
     }
 
-    public Port(final String port, Map<Integer,TagAllocation> tags) {
+    public Port(final String port, Map<Integer,Tag> tags) {
         this.port = port;
         this.tags = tags;
     }
@@ -45,15 +45,15 @@ public class Port implements Comparable<Port> {
         return c1.length - c2.length;
     }
 
-    public Map<Integer, TagAllocation> getTags() {
+    public Map<Integer, Tag> getTags() {
         return tags;
     }
 
-    public void setTags(Map<Integer, TagAllocation> tags) {
+    public void setTags(Map<Integer, Tag> tags) {
         this.tags = tags;
     }
 
-    public void addTag(TagAllocation tag) {
-        this.tags.put(tag.getTag(), tag);
+    public void addTag(Tag tag) {
+        this.tags.put(tag.getTagId(), tag);
     }
 }

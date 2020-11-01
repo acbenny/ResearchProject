@@ -34,7 +34,7 @@ public class NeControllers {
         return repo.getNE(neId);
     }
 
-    @GetMapping("/{neId}/{ordId}")
+    @GetMapping("/{neId}/order/{ordId}")
     public NetworkElement getNEOrder(@PathVariable int neId, @PathVariable long ordId) {
         return repo.getNEWithOrderFilter(neId,ordId);
     }
@@ -42,6 +42,11 @@ public class NeControllers {
     @PostMapping("/assign/route/{neId}")
     public NetworkElement route(@PathVariable int neId, @RequestBody Order order) {
         return repo.route(neId, null, order);
+    }
+
+    @PostMapping("/assign/vrf/{neId}")
+    public NetworkElement assignVrf(@PathVariable int neId, @RequestBody Order order) {
+        return repo.assignVrf(neId, order);
     }
 
     @PostMapping("/assign/route/{neId}/{port}")
@@ -52,5 +57,10 @@ public class NeControllers {
     @PostMapping("/unassign/route")
     public void unroute(@RequestBody NetworkElement ne) {
         repo.unroute(ne);
+    }
+
+    @PostMapping("/unassign/order")
+    public void unassignOrder(@RequestBody Order ord) {
+        repo.unassignOrder(ord);
     }
 }

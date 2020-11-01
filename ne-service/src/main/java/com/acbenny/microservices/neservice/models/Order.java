@@ -1,8 +1,13 @@
 package com.acbenny.microservices.neservice.models;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;;
+
+@JsonInclude(Include.NON_EMPTY)
 public class Order {
     long orderId;
     String serviceId;
+    String vpnName;
 
     public Order() {}
 
@@ -15,7 +20,7 @@ public class Order {
         return orderId;
     }
 
-    public void setOrderId(int orderId) {
+    public void setOrderId(long orderId) {
         this.orderId = orderId;
     }
 
@@ -25,5 +30,13 @@ public class Order {
 
     public void setServiceId(String serviceId) {
         this.serviceId = serviceId;
+    }
+
+    public String getVpnName() {
+        return vpnName;
+    }
+
+    public void setVpnName(String vpnName) {
+        this.vpnName = vpnName;
     }
 }

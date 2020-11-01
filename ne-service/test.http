@@ -17,7 +17,7 @@ content-type: application/json
 
 ###
 
-POST http://devbox:18080/ne/assign/route/100 HTTP/1.1
+POST http://devbox:8080/ne/assign/route/100 HTTP/1.1
 content-type: application/json
 
 {
@@ -54,4 +54,26 @@ content-type: application/json
       }
     }
   }
+}
+
+###
+
+POST http://devbox:8080/ne/assign/vrf/100 HTTP/1.1
+content-type: application/json
+
+{
+  "orderId": 100,
+  "serviceId": "SVC0000000",
+  "vpnName": "VPNA001"
+}
+
+###
+
+POST http://devbox:8080/ne/unassign/order HTTP/1.1
+content-type: application/json
+
+{
+  "orderId": 100,
+  "serviceId": "SVC0000000",
+  "vpnName": "VPNA001"
 }

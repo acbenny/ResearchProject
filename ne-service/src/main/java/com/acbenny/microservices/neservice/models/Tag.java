@@ -1,15 +1,15 @@
 package com.acbenny.microservices.neservice.models;
 
-public class TagAllocation {
-    int tag;
+public class Tag {
+    int tagId;
     Order ord;
 
-    public int getTag() {
-        return tag;
+    public int getTagId() {
+        return tagId;
     }
 
-    public void setTag(int tag) {
-        this.tag = tag;
+    public void setTagId(int tagId) {
+        this.tagId = tagId;
     }
 
     public Order getOrd() {
@@ -20,8 +20,8 @@ public class TagAllocation {
         this.ord = ord;
     }
 
-    public TagAllocation(int tag, Order ord) {
-        this.tag = tag;
+    public Tag(int tagId, Order ord) {
+        this.tagId = tagId;
         this.ord = ord;
     }
 }
