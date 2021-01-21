@@ -3,9 +3,15 @@ package com.acbenny.microservices.neservice.models;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 public class VRF {
     String vpnName;
     String vrfName;
+
+    @JsonInclude(Include.NON_DEFAULT)
+    boolean createDeleteCommunity;
 
     Map<Integer,String> interfaces = new TreeMap<>();
 
@@ -40,6 +46,14 @@ public class VRF {
 
     public void addInterface(int id, String serviceId) {
         this.interfaces.put(id, serviceId);
+    }
+
+    public boolean isCreateDeleteCommunity() {
+        return createDeleteCommunity;
+    }
+
+    public void setCreateDeleteCommunity(boolean flag) {
+        this.createDeleteCommunity = flag;
     }
 
     @Override

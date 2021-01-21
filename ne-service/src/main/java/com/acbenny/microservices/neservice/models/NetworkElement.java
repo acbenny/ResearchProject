@@ -13,9 +13,6 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 public class NetworkElement {
     int neId;
     String model;
-    
-    @JsonInclude(Include.NON_DEFAULT)
-    boolean createDeleteCommunity;
 
     Map<String,Port> ports = new LinkedHashMap<String,Port>();
 
@@ -102,11 +99,4 @@ public class NetworkElement {
         filterIds.put(filterId, serviceId);
     }
 
-    public boolean isCreateDeleteCommunity() {
-        return createDeleteCommunity;
-    }
-
-    public void setCreateDeleteCommunity(boolean flag) {
-        this.createDeleteCommunity = flag;
-    }
 }

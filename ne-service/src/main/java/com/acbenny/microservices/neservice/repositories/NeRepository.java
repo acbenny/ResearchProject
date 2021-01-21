@@ -143,17 +143,16 @@ public class NeRepository {
                 OVertex ovOrder = oeInterface.getFrom();
                 if (ordId == 0 || ordId == (long) ovOrder.getProperty("orderId")) {
                     ovVpn = ovVrf.getVertices(ODirection.IN, "VpnVrfs").iterator().next();
-                    ne.addVrf(new VRF(ovVpn.getProperty("vpnName"),ovVrf.getProperty("vrfName"))
-                                ,oeInterface.getProperty("interfaceId"),ovOrder.getProperty("serviceId"));
+                    VRF vrf = new VRF(ovVpn.getProperty("vpnName"),ovVrf.getProperty("vrfName"));
+                    if (ordId != 0) {
+                        Stream<OVertex> vpnVrfStream = StreamSupport.stream(ovVpn.getVertices(ODirection.OUT, "VpnVrfs").spliterator(), false);
+                        long neVrfCount = vpnVrfStream.filter(v -> neVrfs.contains(v.getProperty("vrfName"))).count();
+                        if (neVrfCount == 1)
+                            vrf.setCreateDeleteCommunity(true);
+                    }
+                    ne.addVrf(vrf,oeInterface.getProperty("interfaceId"),ovOrder.getProperty("serviceId"));
                 }
             }
-        }
-
-        if (ordId != 0 && ovVpn != null) {
-            Stream<OVertex> vpnVrfStream = StreamSupport.stream(ovVpn.getVertices(ODirection.OUT, "VpnVrfs").spliterator(), false);
-            long neVrfCount = vpnVrfStream.filter(v -> neVrfs.contains(v.getProperty("vrfName"))).count();
-            if (neVrfCount == 1)
-                ne.setCreateDeleteCommunity(true);
         }
 
         for (OEdge oeFilter : ovNE.getEdges(ODirection.OUT, "Filters")) {
