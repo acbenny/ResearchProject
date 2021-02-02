@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: config-service
+  cloud:
+    consul:
+      enabled: true
+      host: ${HOST_IP:localhost}
+      discovery:
+        instance-id: ${spring.cloud.client.hostname}
+        ip-address: ${POD_IP}
+        prefer-ip-address: true
+      config:
+        format: yaml

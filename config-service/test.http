@@ -1,0 +1,6 @@
+POST http://devbox:38080/config/100 HTTP/1.1
+content-type: application/json
+
+{
+    "vpnName": "voip-1"
+}
