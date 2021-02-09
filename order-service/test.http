@@ -10,6 +10,15 @@ POST http://devbox:28080/order/create HTTP/1.1
 content-type: application/json
 
 {
+    "vpnName": "voip-1"
+}
+
+###
+
+POST http://devbox:28080/order/create HTTP/1.1
+content-type: application/json
+
+{
     "serviceId": "SVC0000000",
     "orderId": 100
 }
@@ -19,17 +28,21 @@ content-type: application/json
 POST http://devbox:28080/order/route/SVC0000000 HTTP/1.1
 content-type: application/json
 
-["100:5",
- "105"
+["100:5"
 ]
 
 
 ###
 
-POST http://devbox:2s8080/order/unroute/SVC0000000 HTTP/1.1
+POST http://devbox:28080/order/unroute/SVC0000000 HTTP/1.1
 content-type: application/json
 
 []
+
+###
+
+POST http://devbox:28080/order/config/SVC0000001 HTTP/1.1
+content-type: application/json
 
 ###
 

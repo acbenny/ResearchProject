@@ -1,5 +1,6 @@
 package com.acbenny.microservices.orderservice.controllers;
 
+import java.util.ArrayList;
 import java.util.Set;
 
 import com.acbenny.microservices.orderservice.models.Order;
@@ -53,5 +54,10 @@ public class OrderControllers {
     @GetMapping("/{serviceId}/latest")
     public Order getLatestServiceOrder(@PathVariable String serviceId) {
         return repo.getLatestServiceOrder(serviceId);
+    }
+
+    @PostMapping("/config/{serviceId}")
+    public ArrayList<Object> configOrder(@PathVariable String serviceId){
+        return repo.configOrder(serviceId);
     }
 }

@@ -19,7 +19,7 @@ public interface NEServiceClient {
 	@PostMapping("/ne/assign/route/{neId}/{port}")
 	public LinkedHashMap<String, Object> route(@PathVariable long neId, @PathVariable String port, @RequestBody Order ord);
 	
-	@GetMapping("/ne/{neId}/{ordId}")
+	@GetMapping("/ne/{neId}/order/{ordId}")
 	public LinkedHashMap<String, Object> getOrdDetails(@PathVariable int neId, @PathVariable long ordId);
 
 	@PostMapping("/ne/unassign/route")

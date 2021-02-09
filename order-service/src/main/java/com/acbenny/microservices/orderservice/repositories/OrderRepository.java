@@ -1,5 +1,7 @@
 package com.acbenny.microservices.orderservice.repositories;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.Optional;
 import java.util.Set;
 
@@ -22,6 +24,9 @@ public class OrderRepository {
     
     @Autowired
     public NEServiceClient neService;
+
+    @Autowired
+    public ConfigServiceClient configService;
 
     @Autowired
     public void setDb(ODatabaseSession db) {
@@ -49,6 +54,10 @@ public class OrderRepository {
         }
         ov.setProperty("serviceId", ord.getServiceId());
         ov.setProperty("vpnName", ord.getVpnName());
+        if (ord.getStatus() != null)
+            ov.setProperty("status", ord.getStatus());
+        else
+            ov.setProperty("status", "PLACED");
         ov.save();
         if (ovPrev != null){
             ovPrev.addEdge(ov, "NextOrder").save();
@@ -60,7 +69,7 @@ public class OrderRepository {
         String sql = "SELECT FROM Orders";
         db.activateOnCurrentThread();
         OResultSet rs = db.command(sql);
-        return rs.vertexStream().map(x -> new Order(x.getProperty("orderId"), x.getProperty("serviceId"), null, null))
+        return rs.vertexStream().map(x -> new Order(x.getProperty("orderId"), x.getProperty("serviceId"), x.getProperty("status"), null, null))
                 .toArray(Order[]::new);
     }
 
@@ -69,7 +78,7 @@ public class OrderRepository {
         db.activateOnCurrentThread();
         OResultSet rs = db.command(sql, ordId);
 
-        return rs.vertexStream().findFirst().map(x -> new Order(x.getProperty("orderId"), x.getProperty("serviceId"), x.getProperty("vpnName"), x.getProperty("neIds")))
+        return rs.vertexStream().findFirst().map(x -> new Order(x.getProperty("orderId"), x.getProperty("serviceId"), x.getProperty("status"), x.getProperty("vpnName"), x.getProperty("neIds")))
                 .orElseThrow();
     }
 
@@ -77,7 +86,7 @@ public class OrderRepository {
         String sql = "SELECT FROM Orders WHERE serviceId = ?";
         db.activateOnCurrentThread();
         OResultSet rs = db.command(sql, serviceId);
-        return rs.vertexStream().map(x -> new Order(x.getProperty("orderId"), x.getProperty("serviceId"), x.getProperty("vpnName"), x.getProperty("neIds")))
+        return rs.vertexStream().map(x -> new Order(x.getProperty("orderId"), x.getProperty("serviceId"), x.getProperty("status"), x.getProperty("vpnName"), x.getProperty("neIds")))
                 .toArray(Order[]::new);
     }
 
@@ -90,7 +99,7 @@ public class OrderRepository {
 
 	public Order getLatestServiceOrder(String serviceId) {
         OVertex ov = getLatestOrder(serviceId).orElseThrow();
-        return new Order(ov.getProperty("orderId"), ov.getProperty("serviceId"), ov.getProperty("vpnName"), ov.getProperty("neIds"));
+        return new Order(ov.getProperty("orderId"), ov.getProperty("serviceId"), ov.getProperty("status"), ov.getProperty("vpnName"), ov.getProperty("neIds"));
 	}
 
 	public void routeOrder(String serviceId, Set<String> neIDs) {
@@ -107,12 +116,13 @@ public class OrderRepository {
             ord.addNE(neId);
             });
         ov.setProperty("neIds", ord.getNeIds(), OType.EMBEDDEDSET);
+        ov.setProperty("status", "ROUTED");
         ov.save();
 	}
 
 	public void unrouteOrder(String serviceId, Set<Integer> neIDs) {
         OVertex ov = getLatestOrder(serviceId).orElseThrow();
-        Order ord = new Order(ov.getProperty("orderId"), ov.getProperty("serviceId"), null, ov.getProperty("neIds"));
+        Order ord = new Order(ov.getProperty("orderId"), ov.getProperty("serviceId"), ov.getProperty("status"), null, ov.getProperty("neIds"));
         ord.getNeIds().forEach(ne -> {
             if (neIDs.isEmpty() || neIDs.contains(ne)) {
                 neService.unroute(neService.getOrdDetails(ne, ord.getOrderId()));
@@ -120,6 +130,15 @@ public class OrderRepository {
             }
         });
         ov.setProperty("neIds", ord.getNeIds(), OType.EMBEDDEDSET);
+        ov.setProperty("status", "PLACED");
         ov.save();
+	}
+
+	public ArrayList<Object> configOrder(String serviceId) {
+        OVertex ov = getLatestOrder(serviceId).orElseThrow();
+        ArrayList<Object> ret = configService.configOrder(ov.getProperty("orderId"));
+        ov.setProperty("status", "CONFIGURED");
+        ov.save();
+        return ret;
 	}
 }

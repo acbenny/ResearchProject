@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 public class Order {
     long orderId;
     String serviceId;
+    String status;
 
     String vpnName;
     
@@ -66,5 +67,13 @@ public class Order {
 
     public void setVpnName(String vpnName) {
         this.vpnName = vpnName;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
