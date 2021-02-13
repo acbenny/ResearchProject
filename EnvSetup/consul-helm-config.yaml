@@ -20,3 +20,4 @@ syncCatalog:
   default: false
   toConsul: true
   toK8S: false
+  k8sDenyNamespaces: ['kube-public']
