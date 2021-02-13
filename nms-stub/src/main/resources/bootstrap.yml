@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: nms-stub
+  cloud:
+    consul:
+      host: ${HOST_IP:localhost}
+      discovery:
+        instance-id: ${spring.cloud.client.hostname}
+        ip-address: ${POD_IP}
+        prefer-ip-address: true
+      config:
+        format: yaml
+  datasource:
+    url: jdbc:h2:mem:testdb
+  h2:
+    console:
+      enabled: true

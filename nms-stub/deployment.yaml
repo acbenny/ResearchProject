@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: nms-stub
+  name: nms-stub
+  namespace: microservices
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nms-stub
+  template:
+    metadata:
+      labels:
+        app: nms-stub
+    spec:
+      containers:
+      - image: devbox:32000/nms-stub
+        name: nms-stub
+        resources: {}
+        env:
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: nms-stub
+  name: nms-stub
+  namespace: microservices
+spec:
+  ports:
+  - name: 8080-8080
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: nms-stub
+  type: ClusterIP

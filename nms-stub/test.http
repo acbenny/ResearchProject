@@ -1,0 +1,28 @@
+POST http://localhost:8080/nms HTTP/1.1
+content-type: application/json
+
+[
+    {
+        "neId": 100,
+        "vlanDescription": "SVC0000001",
+        "vpnName": "voip-1",
+        "vrfName": "voip-1-s0001",
+        "interfaceId": 1,
+        "createCommunity": true,
+        "filterId": 1,
+        "ports": {
+            "1/1/5": {
+                "port": "1/1/5",
+                "tags": {
+                    "2": {
+                        "tagId": 2,
+                        "ord": {
+                            "orderId": 101,
+                            "serviceId": "SVC0000001"
+                        }
+                    }
+                }
+            }
+        }
+    }
+]
