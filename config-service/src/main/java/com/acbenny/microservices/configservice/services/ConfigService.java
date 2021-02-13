@@ -1,5 +1,7 @@
 package com.acbenny.microservices.configservice.services;
 
+import java.util.ArrayList;
+
 import com.acbenny.microservices.configservice.models.ConfigOperation;
 import com.acbenny.microservices.configservice.models.NetworkElement;
 import com.acbenny.microservices.configservice.models.Order;
@@ -13,6 +15,9 @@ public class ConfigService {
 
     @Autowired
     public NEServiceClient neService;
+
+    @Autowired
+    private OrderServiceClient ordService;
 
     public ConfigOperation generateOperation(Order ord, int neId) {
         NetworkElement ne = null;
@@ -51,5 +56,24 @@ public class ConfigService {
         }
         opr.setPorts(ne.getPorts());
         return opr;
+    }
+
+    public ArrayList<ConfigOperation> configOperations(long ordId) {
+        Order ord = ordService.getOrdDetails(ordId);
+        ArrayList<ConfigOperation> opers = new ArrayList<ConfigOperation>();
+        ord.getNeIds().forEach(neId -> {
+            opers.add(generateOperation(ord,neId));
+        });
+        return opers;
+    }
+
+    public ArrayList<ConfigOperation> deconfigOperations(long ordId) {
+        Order ord = ordService.getOrdDetails(ordId);
+        ArrayList<ConfigOperation> opers = new ArrayList<ConfigOperation>();
+        ord.getNeIds().forEach(neId -> {
+            opers.add(getOperation(ord,neId));
+        });
+        neService.unassignOrder(ord);
+        return opers;
     }
 }

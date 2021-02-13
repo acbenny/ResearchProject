@@ -1,6 +1,5 @@
 package com.acbenny.microservices.orderservice.repositories;
 
-import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Set;
 
@@ -133,10 +132,13 @@ public class OrderRepository {
         ov.save();
 	}
 
-	public ArrayList<Object> configOrder(String serviceId) {
+	public boolean configOrder(String serviceId) {
         OVertex ov = getLatestOrder(serviceId).orElseThrow();
-        ArrayList<Object> ret = configService.configOrder(ov.getProperty("orderId"));
-        ov.setProperty("status", "CONFIGURED");
+        boolean ret = configService.configOrder(ov.getProperty("orderId"));
+        if (ret)
+            ov.setProperty("status", "CONFIGURED");
+        else
+            ov.setProperty("status", "CONFIG_FAILED");
         ov.save();
         return ret;
 	}

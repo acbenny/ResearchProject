@@ -24,7 +24,8 @@ public class Controller {
     CommandRepository repo;
 
     @PostMapping
-    public void doPost(@RequestBody ArrayList<ConfigOperation> oprs) {
+    public boolean doPost(@RequestBody ArrayList<ConfigOperation> oprs) {
+        boolean anyFailure = false;
         for (ConfigOperation opr : oprs) {
             for (Port port : opr.getPorts().values()) {
                 for (int tag : port.getTags().keySet()) {
@@ -39,10 +40,13 @@ public class Controller {
                         port.getPort(),
                         tag);
                     cmd.setValid(validateCommand(cmd));
+                    if (!cmd.isValid())
+                        anyFailure = true;
                     repo.save(cmd);
                 }
             }
         }
+        return anyFailure;
     }
 
     private boolean validateCommand(Command cmd) {
