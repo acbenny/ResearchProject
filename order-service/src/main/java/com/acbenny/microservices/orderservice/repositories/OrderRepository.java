@@ -132,14 +132,12 @@ public class OrderRepository {
         ov.save();
 	}
 
-	public boolean configOrder(String serviceId) {
+	public String configOrder(String serviceId) {
         OVertex ov = getLatestOrder(serviceId).orElseThrow();
         boolean ret = configService.configOrder(ov.getProperty("orderId"));
-        if (ret)
-            ov.setProperty("status", "CONFIGURED");
-        else
-            ov.setProperty("status", "CONFIG_FAILED");
+        String ordStatus = ret?"CONFIGURED":"CONFIG_FAILED";
+        ov.setProperty("status", ordStatus);
         ov.save();
-        return ret;
+        return ordStatus;
 	}
 }

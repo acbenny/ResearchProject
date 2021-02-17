@@ -11,8 +11,8 @@ POST http://devbox:18080/ne/assign/route/100/5 HTTP/1.1
 content-type: application/json
 
 {
-    "orderId": 100,
-    "serviceId": "SVC0000000"
+    "orderId": 101,
+    "serviceId": "SVC0000001"
 }
 
 ###

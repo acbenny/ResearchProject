@@ -56,7 +56,7 @@ public class OrderControllers {
     }
 
     @PostMapping("/config/{serviceId}")
-    public boolean configOrder(@PathVariable String serviceId){
+    public String configOrder(@PathVariable String serviceId){
         return repo.configOrder(serviceId);
     }
 }

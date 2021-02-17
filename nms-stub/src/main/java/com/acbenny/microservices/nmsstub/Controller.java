@@ -46,7 +46,7 @@ public class Controller {
                 }
             }
         }
-        return anyFailure;
+        return !anyFailure;
     }
 
     private boolean validateCommand(Command cmd) {
