@@ -5,3 +5,8 @@ helm install orientdb helm-charts/orientdb --namespace microservices --set rootP
 
 helm repo add hashicorp https://helm.releases.hashicorp.com
 helm install consul hashicorp/consul --set global.name=consul -f consul-helm-config.yaml -n microservices
+
+kubectl create namespace monitoring
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+helm install loki grafana/loki-stack -f loki-stack-helm-config.yaml -n monitoring

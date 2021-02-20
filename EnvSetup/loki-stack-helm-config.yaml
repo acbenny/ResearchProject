@@ -1,0 +1,16 @@
+grafana:
+  enabled: true
+
+prometheus:
+  enabled: true
+  alertmanager:
+    enabled: false
+  nodeExporter:
+    enabled: false
+  pushgateway:
+    enabled: false
+
+loki:
+  persistence:
+    enabled: true
+    size: 2Gi
