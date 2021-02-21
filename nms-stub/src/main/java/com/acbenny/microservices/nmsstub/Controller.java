@@ -14,19 +14,33 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.micrometer.core.annotation.Timed;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+
 @RestController
 @RequestMapping("/nms")
+@Timed
 public class Controller {
 
     Logger logger = LoggerFactory.getLogger(Controller.class);
 
     @Autowired
-    CommandRepository repo;
+    private CommandRepository repo;
+
+    private Counter totCounter;
+    private Counter clashCounter;
+
+    public Controller(MeterRegistry registry) {
+        totCounter = registry.counter("count.nmsStub.operations","type","total");
+        clashCounter = registry.counter("count.nmsStub.operations","type","clashed");
+    }
 
     @PostMapping
     public boolean doPost(@RequestBody ArrayList<ConfigOperation> oprs) {
         boolean anyFailure = false;
         for (ConfigOperation opr : oprs) {
+            totCounter.increment();
             for (Port port : opr.getPorts().values()) {
                 for (int tag : port.getTags().keySet()) {
                     Command cmd = new Command(
@@ -40,8 +54,10 @@ public class Controller {
                         port.getPort(),
                         tag);
                     cmd.setValid(validateCommand(cmd));
-                    if (!cmd.isValid())
+                    if (!cmd.isValid()) {
+                        clashCounter.increment();
                         anyFailure = true;
+                    }
                     repo.save(cmd);
                 }
             }
@@ -61,4 +77,5 @@ public class Controller {
         }
         return true;
     }
+
 }
