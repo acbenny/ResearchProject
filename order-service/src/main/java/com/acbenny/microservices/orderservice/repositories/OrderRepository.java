@@ -37,7 +37,7 @@ public class OrderRepository {
         db.close();
     }
 
-    public void createOrder(Order ord) {
+    public String createOrder(Order ord) {
         db.activateOnCurrentThread();
         OVertex ovPrev = null;
         OVertex ov = db.newVertex("Orders");
@@ -61,6 +61,7 @@ public class OrderRepository {
             ovPrev.addEdge(ov, "NextOrder").save();
         }
         db.commit();
+        return ord.getServiceId();
     }
 
     public Order[] getAllOrders() {
@@ -100,7 +101,19 @@ public class OrderRepository {
         return new Order(ov.getProperty("orderId"), ov.getProperty("serviceId"), ov.getProperty("status"), ov.getProperty("vpnName"), ov.getProperty("neIds"));
 	}
 
-	public void routeOrder(String serviceId, Set<String> neIDs) {
+    public void routeOrder(String serviceId, Set<Integer> neIDs) {
+        OVertex ov = getLatestOrder(serviceId).orElseThrow();
+        Order ord = new Order(ov.getProperty("orderId"), ov.getProperty("serviceId"));
+        neIDs.forEach(neId -> {
+            neService.route(neId, ord);
+            ord.addNE(neId);
+        });
+        ov.setProperty("neIds", ord.getNeIds(), OType.EMBEDDEDSET);
+        ov.setProperty("status", "ROUTED");
+        ov.save();
+	}
+
+	public void routeOrderOnPort(String serviceId, Set<String> neIDs) {
         OVertex ov = getLatestOrder(serviceId).orElseThrow();
         Order ord = new Order(ov.getProperty("orderId"), ov.getProperty("serviceId"));
         neIDs.forEach(neList -> {

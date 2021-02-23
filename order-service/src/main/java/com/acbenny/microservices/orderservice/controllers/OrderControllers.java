@@ -30,7 +30,7 @@ public class OrderControllers {
 
     @PostMapping("/route/{serviceId}")
     public void routeOrder(@PathVariable String serviceId,@RequestBody Set<String> neIDs){
-        repo.routeOrder(serviceId,neIDs);
+        repo.routeOrderOnPort(serviceId,neIDs);
     }
 
     @PostMapping("/unroute/{serviceId}")
@@ -59,7 +59,14 @@ public class OrderControllers {
     }
 
     @PostMapping("/config/{serviceId}")
-    public String configOrder(@PathVariable String serviceId){
+    public String configOrder(@PathVariable String serviceId) {
+        return repo.configOrder(serviceId);
+    }
+
+    @PostMapping("/createRouteAndConfig")
+    public String createOrdRouteConfig(@RequestBody Order ord) {
+        String serviceId = repo.createOrder(ord);
+        repo.routeOrder(serviceId,ord.getNeIds());
         return repo.configOrder(serviceId);
     }
 }
