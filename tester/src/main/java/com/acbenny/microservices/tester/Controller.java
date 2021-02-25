@@ -24,7 +24,7 @@ public class Controller {
         Order ord = new Order();
         ord.setVpnName("voip-1");
         ord.addNE(101);
-        for (int i = 0; i < 2 ; i++) {
+        for (int i = 0; i < 30 ; i++) {
             System.out.println(i);
             webClient.post().uri("/createRouteAndConfig")
             .body(Mono.just(ord),Order.class)

@@ -1,5 +1,6 @@
 package com.acbenny.microservices.neservice.repositories;
 
+import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -35,7 +36,7 @@ public class NeRepository {
 
     private ODatabaseSession db;
 
-    @Value("${db.maxRetries:10}")
+    @Value("${db.maxRetries:50}")
     private int maxRetries;
 
     @Value("${tagRange.start:1}")
@@ -213,10 +214,10 @@ public class NeRepository {
                 throw new NoSuchElementException("No Free Tags available on " + neId);
             } catch( ONeedRetryException e ) {
                 db.rollback();
-                logger.error("Retring:"+retry+1, e);
+                logger.error("Retrying:"+(retry+1));
             }
         }
-        throw new NoSuchElementException("Max Retries for db tx");
+        throw new ConcurrentModificationException("Max Retries for db tx");
     }
 
     public void unroute(NetworkElement ne) {
@@ -323,10 +324,10 @@ public class NeRepository {
                 }
             } catch( ONeedRetryException e ) {
                 db.rollback();
-                logger.error("Retring:"+retry+1, e);
+                logger.error("Retrying:"+(retry+1));
             }
         }
-        throw new NoSuchElementException("Max Retries for db tx");
+        throw new ConcurrentModificationException("Max Retries for db tx");
 	}
 
 	public void unassignOrder(Order o) {

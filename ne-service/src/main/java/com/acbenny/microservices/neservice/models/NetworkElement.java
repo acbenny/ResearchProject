@@ -84,15 +84,13 @@ public class NetworkElement {
         if (vrfs.contains(vrf)) {
             for (VRF v : vrfs) {
                 if (v.equals(vrf)){
-                    vrfs.remove(v);
-                    v.addInterface(interfaceId, serviceId);
-                    vrfs.add(v);
+                    vrf = v;
                 }
             }
-        } else {
-            vrf.addInterface(interfaceId, serviceId);
-            vrfs.add(vrf);
         }
+
+        vrf.addInterface(interfaceId, serviceId);
+        vrfs.add(vrf);
     }
 
     public void addFilter(int filterId, String serviceId) {

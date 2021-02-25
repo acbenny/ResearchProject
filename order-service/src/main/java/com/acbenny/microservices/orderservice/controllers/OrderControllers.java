@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import brave.Tracer;
 import io.micrometer.core.annotation.Timed;
 
 @RestController
@@ -22,6 +23,9 @@ public class OrderControllers {
 
     @Autowired
     private OrderRepository repo;
+
+    @Autowired
+    Tracer tracer;
 
     @PostMapping("/create")
     public void createOrdre(@RequestBody Order ord){
@@ -67,6 +71,6 @@ public class OrderControllers {
     public String createOrdRouteConfig(@RequestBody Order ord) {
         String serviceId = repo.createOrder(ord);
         repo.routeOrder(serviceId,ord.getNeIds());
-        return repo.configOrder(serviceId);
+        return repo.configOrder(serviceId) + " Trace ID: " + tracer.currentSpan().context().traceIdString();
     }
 }
