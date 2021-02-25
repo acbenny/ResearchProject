@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.context.annotation.RequestScope;
 
 @Configuration
 public class DBConfiguration {
@@ -37,6 +38,7 @@ public class DBConfiguration {
     OrientDB orient;
     
     @Bean
+    @RequestScope
     public ODatabaseSession orientDBSessionFactory() {
         String path = serviceUrl().getHost();
         orient = new OrientDB("remote:" + path, OrientDBConfig.defaultConfig());

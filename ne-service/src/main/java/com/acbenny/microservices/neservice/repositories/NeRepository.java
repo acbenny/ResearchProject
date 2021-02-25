@@ -15,12 +15,15 @@ import com.acbenny.microservices.neservice.models.Port;
 import com.acbenny.microservices.neservice.models.Tag;
 import com.acbenny.microservices.neservice.models.VRF;
 import com.orientechnologies.common.collection.OMultiCollectionIterator;
+import com.orientechnologies.common.concur.ONeedRetryException;
 import com.orientechnologies.orient.core.db.ODatabaseSession;
 import com.orientechnologies.orient.core.record.ODirection;
 import com.orientechnologies.orient.core.record.OEdge;
 import com.orientechnologies.orient.core.record.OVertex;
 import com.orientechnologies.orient.core.sql.executor.OResultSet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
@@ -28,7 +31,12 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class NeRepository {
 
+    Logger logger = LoggerFactory.getLogger(NeRepository.class);
+
     private ODatabaseSession db;
+
+    @Value("${db.maxRetries:10}")
+    private int maxRetries;
 
     @Value("${tagRange.start:1}")
     private int tagStart;
@@ -173,32 +181,42 @@ public class NeRepository {
     }
 
     public NetworkElement route(int neId, String portInput, Order o) {
-        OVertex ovNE = getNEFromDB(neId);
-        NetworkElement ne = null;
+        for (int retry = 0; retry < maxRetries; ++retry) {
+            try {
+                db.begin();
+                OVertex ovNE = getNEFromDB(neId);
+                NetworkElement ne = null;
 
-        for (OVertex ovPort : ovNE.getVertices(ODirection.OUT, "Ports")) {
-            if (portInput == null || portInput.equals(ovPort.getProperty("logicalPortName"))) {
-                Iterable<OEdge> ovTags = ovPort.getEdges(ODirection.OUT, "Tags");
-                for (int i = tagStart; i <= tagEnd; i++) {
-                    Stream<OEdge> str = StreamSupport.stream(ovTags.spliterator(), false);
-                    if (!checkInOEdge(str, "tagId", i)) {
-                        OVertex ovTag = db.newVertex("Tag");
-                        ovTag.setProperty("outerTag", i);
-                        ovTag.save();
-                        OEdge oe = ovPort.addEdge(ovTag, "Tags");
-                        oe.setProperty("tagId", i);
-                        oe.save();
-                        getOrder(o, true).addEdge(ovTag, "AllocatedTags").save();
-                        Port port = new Port(ovPort.getProperty("logicalPortName"));
-                        port.addTag(new Tag(i, o));
-                        ne = new NetworkElement(ovNE.getProperty("neId"), ovNE.getProperty("model"));
-                        ne.addPort(port);
-                        return ne;
+                for (OVertex ovPort : ovNE.getVertices(ODirection.OUT, "Ports")) {
+                    if (portInput == null || portInput.equals(ovPort.getProperty("logicalPortName"))) {
+                        Iterable<OEdge> ovTags = ovPort.getEdges(ODirection.OUT, "Tags");
+                        for (int i = tagStart; i <= tagEnd; i++) {
+                            Stream<OEdge> str = StreamSupport.stream(ovTags.spliterator(), false);
+                            if (!checkInOEdge(str, "tagId", i)) {
+                                OVertex ovTag = db.newVertex("Tag");
+                                ovTag.setProperty("outerTag", i);
+                                ovTag.save();
+                                OEdge oe = ovPort.addEdge(ovTag, "Tags");
+                                oe.setProperty("tagId", i);
+                                oe.save();
+                                getOrder(o, true).addEdge(ovTag, "AllocatedTags").save();
+                                Port port = new Port(ovPort.getProperty("logicalPortName"));
+                                port.addTag(new Tag(i, o));
+                                ne = new NetworkElement(ovNE.getProperty("neId"), ovNE.getProperty("model"));
+                                ne.addPort(port);
+                                db.commit();
+                                return ne;
+                            }
+                        }
                     }
                 }
+                throw new NoSuchElementException("No Free Tags available on " + neId);
+            } catch( ONeedRetryException e ) {
+                db.rollback();
+                logger.error("Retring:"+retry+1, e);
             }
         }
-        throw new NoSuchElementException("No Free Tags available on " + neId);
+        throw new NoSuchElementException("Max Retries for db tx");
     }
 
     public void unroute(NetworkElement ne) {
@@ -244,61 +262,71 @@ public class NeRepository {
     }
 
     public NetworkElement assignVrf(int neId, Order order) {
-        if (order.getVpnName() != null) {
-            db.activateOnCurrentThread();
-            String sql = "SELECT FROM Order WHERE orderId = ?";
-            OVertex ovOrder = null;
-            try (OResultSet rs = db.command(sql, order.getOrderId());) {
-                ovOrder = rs.vertexStream().findFirst().orElseThrow();
-            }
-            if (ovOrder.getVertices(ODirection.OUT, "AllocatedVrfs").iterator().hasNext()) {
-                return getNEWithOrderFilter(neId, order.getOrderId());
-            } else {
-                db.begin();
-                OVertex ovVpn = getVpn(order.getVpnName(), true);
-                OVertex ovNe = getNEFromDB(neId);
-
-                Stream<OVertex> ovStream = StreamSupport.stream(ovVpn.getVertices(ODirection.OUT, "VpnVrfs").spliterator(), false);
-                boolean found = false;
-                for (int i = tagStart; i <= tagEnd; i++) {
-                    String vrfName = String.format("%s-s%04d", order.getVpnName(), i);
-                    if (!ovStream.anyMatch(v -> vrfName == (String) v.getProperty("vrfName"))) {
-                        OVertex ovVrf = db.newVertex("Vrf");
-                        ovVrf.setProperty("vrfName", vrfName);
-                        ovVrf.save();
-                        ovVpn.addEdge(ovVrf, "VpnVrfs").save();
-                        OEdge oeInterface = ovOrder.addEdge(ovVrf, "AllocatedVrfs");
-                        oeInterface.setProperty("interfaceId", 1);
-                        oeInterface.save();
-                        ovNe.addEdge(ovVrf, "Vrfs").save();
-                        found = true;
-                        break;
+        db.activateOnCurrentThread();
+        for (int retry = 0; retry < maxRetries; ++retry) {
+            try {
+                if (order.getVpnName() != null) {
+                    String sql = "SELECT FROM Order WHERE orderId = ?";
+                    OVertex ovOrder = null;
+                    try (OResultSet rs = db.command(sql, order.getOrderId());) {
+                        ovOrder = rs.vertexStream().findFirst().orElseThrow();
                     }
-                }
-                if (!found) {
-                    db.rollback();
-                    throw new NoSuchElementException("VRF spoke id exhausted!");
-                }
+                    if (ovOrder.getVertices(ODirection.OUT, "AllocatedVrfs").iterator().hasNext()) {
+                        return getNEWithOrderFilter(neId, order.getOrderId());
+                    } else {
+                        db.begin();
+                        OVertex ovVpn = getVpn(order.getVpnName(), true);
+                        OVertex ovNe = getNEFromDB(neId);
 
-                Stream<OEdge> oeStream = StreamSupport.stream(ovNe.getEdges(ODirection.OUT, "Filters").spliterator(),false);
-                found = false;
-                for (int i = tagStart; i <= tagEnd; i++) {
-                    if (!checkInOEdge(oeStream,"id",i)) {
-                        OEdge oe = ovNe.addEdge(ovOrder,"Filters");
-                        oe.setProperty("id", i);
-                        oe.save();
-                        found = true;
-                        break;
+                        Iterable<OVertex> ovVrfs = ovVpn.getVertices(ODirection.OUT, "VpnVrfs");
+                        boolean found = false;
+                        for (int i = tagStart; i <= tagEnd; i++) {
+                            Stream<OVertex> ovStream = StreamSupport.stream(ovVrfs.spliterator(), false);
+                            String vrfName = String.format("%s-s%04d", order.getVpnName(), i);
+                            if (!ovStream.anyMatch(v -> vrfName.equals(v.getProperty("vrfName")))) {
+                                OVertex ovVrf = db.newVertex("Vrf");
+                                ovVrf.setProperty("vrfName", vrfName);
+                                ovVrf.save();
+                                ovVpn.addEdge(ovVrf, "VpnVrfs").save();
+                                OEdge oeInterface = ovOrder.addEdge(ovVrf, "AllocatedVrfs");
+                                oeInterface.setProperty("interfaceId", 1);
+                                oeInterface.save();
+                                ovNe.addEdge(ovVrf, "Vrfs").save();
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            db.rollback();
+                            throw new NoSuchElementException("VRF spoke id exhausted!");
+                        }
+
+                        Iterable<OEdge> oeFilters = ovNe.getEdges(ODirection.OUT, "Filters");
+                        found = false;
+                        for (int i = tagStart; i <= tagEnd; i++) {
+                            Stream<OEdge> oeStream = StreamSupport.stream(oeFilters.spliterator(),false);
+                            if (!checkInOEdge(oeStream,"id",i)) {
+                                OEdge oe = ovNe.addEdge(ovOrder,"Filters");
+                                oe.setProperty("id", i);
+                                oe.save();
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            db.rollback();
+                            throw new NoSuchElementException("Filters exhausted!");
+                        }
                     }
+                    db.commit();
+                    return getNEWithOrderFilter(neId, order.getOrderId());
                 }
-                if (!found) {
-                    db.rollback();
-                    throw new NoSuchElementException("Filters exhausted!");
-                }
+            } catch( ONeedRetryException e ) {
+                db.rollback();
+                logger.error("Retring:"+retry+1, e);
             }
         }
-        db.commit();
-		return getNEWithOrderFilter(neId, order.getOrderId());
+        throw new NoSuchElementException("Max Retries for db tx");
 	}
 
 	public void unassignOrder(Order o) {
