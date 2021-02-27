@@ -6,8 +6,8 @@ spring:
       enabled: true
       host: ${HOST_IP:localhost}
       discovery:
-        instance-id: ${spring.cloud.client.hostname}
-        ip-address: ${POD_IP}
+        instance-id: ${HOSTNAME}
+        ip-address: ${POD_IP:localhost}
         prefer-ip-address: true
       config:
         format: yaml

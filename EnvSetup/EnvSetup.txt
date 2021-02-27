@@ -1,7 +1,8 @@
 kubectl create namespace microservices
 kubectl config set-context --current --namespace=microservices
 
-helm install orientdb helm-charts/orientdb --namespace microservices --set rootPassword=orientDBadmin
+helm install orientdb helm-charts/orientdb --namespace microservices --set rootPassword=orientDBadmin,distributed.enabled=true,replicaCount=2
+
 
 helm repo add hashicorp https://helm.releases.hashicorp.com
 helm install consul hashicorp/consul --set global.name=consul -f consul-helm-config.yaml -n microservices
