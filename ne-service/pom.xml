@@ -63,6 +63,11 @@
 			<artifactId>orientdb-client</artifactId>
 			<version>${orientdb.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.orientechnologies</groupId>
+			<artifactId>orientdb-distributed</artifactId>
+			<version>${orientdb.version}</version>
+		</dependency>
 	</dependencies>
 
 	<dependencyManagement>

@@ -24,12 +24,14 @@ public class Controller {
         Order ord = new Order();
         ord.setVpnName("voip-1");
         ord.addNE(101);
-        for (int i = 0; i < 30 ; i++) {
+        for (int i = 0; i < 100 ; i++) {
             System.out.println(i);
             webClient.post().uri("/createRouteAndConfig")
             .body(Mono.just(ord),Order.class)
             .retrieve().bodyToMono(String.class)
-            .doOnError(error -> System.out.println("An error has occurred: " + error.getMessage()))
+            .onErrorResume(e -> {
+                return Mono.just("An error has occurred: " + e.getMessage());
+            })
             .subscribe(System.out::println);
         }
         

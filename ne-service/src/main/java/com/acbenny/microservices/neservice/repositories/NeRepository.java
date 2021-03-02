@@ -17,6 +17,7 @@ import com.acbenny.microservices.neservice.models.Tag;
 import com.acbenny.microservices.neservice.models.VRF;
 import com.orientechnologies.common.collection.OMultiCollectionIterator;
 import com.orientechnologies.common.concur.ONeedRetryException;
+import com.orientechnologies.orient.core.db.ODatabasePool;
 import com.orientechnologies.orient.core.db.ODatabaseSession;
 import com.orientechnologies.orient.core.record.ODirection;
 import com.orientechnologies.orient.core.record.OEdge;
@@ -28,8 +29,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.context.annotation.RequestScope;
 
 @Repository
+@RequestScope
 public class NeRepository {
 
     Logger logger = LoggerFactory.getLogger(NeRepository.class);
@@ -46,8 +49,8 @@ public class NeRepository {
     private int tagEnd;
 
     @Autowired
-    public void setDb(ODatabaseSession db) {
-        this.db = db;
+    public NeRepository(ODatabasePool dbPool) {
+        db = dbPool.acquire();
     }
 
     @PreDestroy
@@ -184,7 +187,6 @@ public class NeRepository {
     public NetworkElement route(int neId, String portInput, Order o) {
         for (int retry = 0; retry < maxRetries; ++retry) {
             try {
-                db.begin();
                 OVertex ovNE = getNEFromDB(neId);
                 NetworkElement ne = null;
 
@@ -194,6 +196,7 @@ public class NeRepository {
                         for (int i = tagStart; i <= tagEnd; i++) {
                             Stream<OEdge> str = StreamSupport.stream(ovTags.spliterator(), false);
                             if (!checkInOEdge(str, "tagId", i)) {
+                                db.begin();
                                 OVertex ovTag = db.newVertex("Tag");
                                 ovTag.setProperty("outerTag", i);
                                 ovTag.save();

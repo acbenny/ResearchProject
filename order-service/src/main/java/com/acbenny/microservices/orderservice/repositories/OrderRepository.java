@@ -6,6 +6,7 @@ import java.util.Set;
 import javax.annotation.PreDestroy;
 
 import com.acbenny.microservices.orderservice.models.Order;
+import com.orientechnologies.orient.core.db.ODatabasePool;
 import com.orientechnologies.orient.core.db.ODatabaseSession;
 import com.orientechnologies.orient.core.metadata.schema.OType;
 import com.orientechnologies.orient.core.metadata.sequence.OSequence;
@@ -14,8 +15,10 @@ import com.orientechnologies.orient.core.sql.executor.OResultSet;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.context.annotation.RequestScope;
 
 @Repository
+@RequestScope
 public class OrderRepository {
 
     private ODatabaseSession db;
@@ -27,8 +30,8 @@ public class OrderRepository {
     public ConfigServiceClient configService;
 
     @Autowired
-    public void setDb(ODatabaseSession db) {
-        this.db = db;
+    public OrderRepository(ODatabasePool dbPool) {
+        db = dbPool.acquire();
     }
 
     @PreDestroy
@@ -39,6 +42,7 @@ public class OrderRepository {
 
     public String createOrder(Order ord) {
         db.activateOnCurrentThread();
+        db.begin();
         OVertex ovPrev = null;
         OVertex ov = db.newVertex("Orders");
         if (ord.getOrderId() != 0) {
