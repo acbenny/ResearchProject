@@ -25,6 +25,11 @@ public class NetworkElement {
         }
     }
 
+    public NetworkElement(String model) {
+        this();
+        this.model = model;
+    }
+
     public NetworkElement(int neId, String model) {
         this.neId = neId;
         this.model = model;

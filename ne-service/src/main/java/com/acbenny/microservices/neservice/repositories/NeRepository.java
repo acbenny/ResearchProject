@@ -362,8 +362,8 @@ public class NeRepository {
         db.activateOnCurrentThread();
         db.command("DELETE VERTEX V");
         db.command("select sequence('neIdSeq').reset()");
-        createNE(new NetworkElement(0,"7750 SR-12 MSE"));
-        createNE(new NetworkElement(0,"7750 SR-12 MSE"));
+        createNE(new NetworkElement("7750 SR-12 MSE"));
+        createNE(new NetworkElement("7750 SR-12 MSE"));
         return getAllNEs();
 	}
 }
