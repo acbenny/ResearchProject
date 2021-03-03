@@ -157,4 +157,12 @@ public class OrderRepository {
         ov.save();
         return ordStatus;
 	}
+
+	public Object[] reset() {
+        db.activateOnCurrentThread();
+        db.command("DELETE VERTEX V");
+        db.command("select sequence('svcIdSeq').reset()");
+        db.command("select sequence('ordIdSeq').reset()");
+		return neService.reset();
+	}
 }

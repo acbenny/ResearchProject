@@ -24,4 +24,7 @@ public interface NEServiceClient {
 
 	@PostMapping("/ne/unassign/route")
 	public void unroute(@RequestBody LinkedHashMap<String, Object> neObject);
+
+	@PostMapping("/ne/reset")
+	public Object[] reset();
 }

@@ -357,4 +357,13 @@ public class NeRepository {
         } else
         throw new NoSuchElementException("Ord id " + o.getOrderId() + " not found!");
 	}
+
+	public NetworkElement[] reset() {
+        db.activateOnCurrentThread();
+        db.command("DELETE VERTEX V");
+        db.command("select sequence('neIdSeq').reset()");
+        createNE(new NetworkElement(0,"7750 SR-12 MSE"));
+        createNE(new NetworkElement(0,"7750 SR-12 MSE"));
+        return getAllNEs();
+	}
 }

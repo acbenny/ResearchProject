@@ -73,4 +73,9 @@ public class OrderControllers {
         repo.routeOrder(serviceId,ord.getNeIds());
         return repo.configOrder(serviceId) + " Trace ID: " + tracer.currentSpan().context().traceIdString();
     }
+
+    @GetMapping("/reset")
+    public Object[] reset() {
+        return repo.reset();
+    }
 }

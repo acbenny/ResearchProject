@@ -63,4 +63,9 @@ public class NeControllers {
     public void unassignOrder(@RequestBody Order ord) {
         repo.unassignOrder(ord);
     }
+
+    @PostMapping("/reset")
+    public NetworkElement[] reset() {
+        return repo.reset();
+    }
 }
