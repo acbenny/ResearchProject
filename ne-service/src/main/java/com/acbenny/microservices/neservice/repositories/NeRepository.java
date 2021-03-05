@@ -23,6 +23,7 @@ import com.orientechnologies.orient.core.record.ODirection;
 import com.orientechnologies.orient.core.record.OEdge;
 import com.orientechnologies.orient.core.record.OVertex;
 import com.orientechnologies.orient.core.sql.executor.OResultSet;
+import com.orientechnologies.orient.core.storage.ORecordDuplicatedException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -325,7 +326,7 @@ public class NeRepository {
                     db.commit();
                     return getNEWithOrderFilter(neId, order.getOrderId());
                 }
-            } catch( ONeedRetryException e ) {
+            } catch( ORecordDuplicatedException | ONeedRetryException e ) {
                 db.rollback();
                 logger.error("Retrying:"+(retry+1));
             }

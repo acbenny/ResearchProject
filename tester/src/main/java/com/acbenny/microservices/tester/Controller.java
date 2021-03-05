@@ -1,8 +1,13 @@
 package com.acbenny.microservices.tester;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Random;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -19,18 +24,29 @@ public class Controller {
                     .build();
     }
 
-    @GetMapping("/start")
-    public String start() {
-        Order ord = new Order();
-        ord.setVpnName("voip-1");
-        ord.addNE(101);
-        for (int i = 0; i < 100 ; i++) {
-            System.out.println(i);
+    public static int getRandom(int[] array) {
+        int rnd = new Random().nextInt(array.length);
+        return array[rnd];
+    }
+
+    @GetMapping("/start/{loopCnt}")
+    public String start(@PathVariable int loopCnt) {
+
+        for (int i = 1; i <= loopCnt ; i++) {
+            final int cnt = i;
+            Order ord = new Order("voip-" + getRandom(new int[]{1,2,3})
+                                    ,getRandom(new int[]{101,102}));
+            System.out.println(cnt);
             webClient.post().uri("/createRouteAndConfig")
             .body(Mono.just(ord),Order.class)
             .retrieve().bodyToMono(String.class)
             .onErrorResume(e -> {
                 return Mono.just("An error has occurred: " + e.getMessage());
+            })
+            .elapsed()
+            .flatMap(tuple -> {
+                String time = (new SimpleDateFormat("mm:ss:SSS")).format(new Date(tuple.getT1())).toString();
+                return Mono.just(cnt + " : time : " + time + " : " +tuple.getT2());
             })
             .subscribe(System.out::println);
         }

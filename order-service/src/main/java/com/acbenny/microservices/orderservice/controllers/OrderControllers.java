@@ -71,7 +71,7 @@ public class OrderControllers {
     public String createOrdRouteConfig(@RequestBody Order ord) {
         String serviceId = repo.createOrder(ord);
         repo.routeOrder(serviceId,ord.getNeIds());
-        return repo.configOrder(serviceId) + " Trace ID: " + tracer.currentSpan().context().traceIdString();
+        return serviceId + " : " + repo.configOrder(serviceId) + " Trace ID: " + tracer.currentSpan().context().traceIdString();
     }
 
     @GetMapping("/reset")

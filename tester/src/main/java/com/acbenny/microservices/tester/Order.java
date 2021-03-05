@@ -17,17 +17,9 @@ public class Order {
 
     public Order() {}
 
-    public Order(long orderId, String serviceId) {
-        this.orderId = orderId;
-        this.serviceId = serviceId;
-    }
-
-    public Order(long orderId, String serviceId, String status, String vpnName, Set<Integer> neIds) {
-        this.orderId = orderId;
-        this.serviceId = serviceId;
-        this.status = status;
+    public Order(String vpnName,int neId) {
         this.vpnName = vpnName;
-        this.neIds = neIds;
+        this.neIds.add(neId);
     }
 
     public long getOrderId() {

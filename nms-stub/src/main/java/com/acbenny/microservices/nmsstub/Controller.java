@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import brave.Tracer;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -27,6 +28,9 @@ public class Controller {
 
     @Autowired
     private CommandRepository repo;
+
+    @Autowired
+    private Tracer tracer;
 
     private Counter totCounter;
     private Counter clashCounter;
@@ -53,11 +57,13 @@ public class Controller {
                         opr.getFilterId(),
                         port.getPort(),
                         tag);
-                    cmd.setValid(validateCommand(cmd));
-                    if (!cmd.isValid()) {
+                    cmd.setClashType(validateCommand(cmd));
+                    if (cmd.getClashType() != null) {
+                        cmd.setValid(false);
                         clashCounter.increment();
                         anyFailure = true;
                     }
+                    cmd.setTraceId(tracer.currentSpan().context().traceIdString());
                     repo.save(cmd);
                 }
             }
@@ -65,17 +71,26 @@ public class Controller {
         return !anyFailure;
     }
 
-    private boolean validateCommand(Command cmd) {
-        if (repo.existsByNeIdAndPortAndTagAndValidTrue(cmd.getNeId(), cmd.getPort(), cmd.getTag())
-                || repo.existsByNeIdAndVrfNameAndValidTrue(cmd.getNeId(), cmd.getVrfName())
-                || repo.existsByNeIdAndVrfNameAndInterfaceIdAndValidTrue(cmd.getNeId(), cmd.getVrfName(), cmd.getInterfaceId())
-                || repo.existsByNeIdAndFilterIdAndValidTrue(cmd.getNeId(), cmd.getFilterId())
-                || (cmd.isCreateCommunity() && repo.existsByNeIdAndVpnNameAndValidTrue(cmd.getNeId(), cmd.getVpnName()))
-        ) {
-            logger.error("CLASH DETECTED!!!");
-            return false;
-        }
-        return true;
-    }
+    private String validateCommand(Command cmd) {
+        String clashType = null;
 
+        if (repo.existsByNeIdAndPortAndTagAndValidTrue(cmd.getNeId(), cmd.getPort(), cmd.getTag()))
+            clashType = (clashType==null?"":clashType) +"PORT/TAG|";
+        if (repo.existsByNeIdAndVrfNameAndValidTrue(cmd.getNeId(), cmd.getVrfName()))
+            clashType = (clashType==null?"":clashType)+"VRF|";
+        if (repo.existsByNeIdAndFilterIdAndValidTrue(cmd.getNeId(), cmd.getFilterId()))
+            clashType = (clashType==null?"":clashType)+"FILTER|";
+        if (cmd.isCreateCommunity() && repo.existsByNeIdAndVpnNameAndValidTrue(cmd.getNeId(), cmd.getVpnName()))
+            clashType = (clashType==null?"":clashType)+"COMMUNITYEXISTS|";
+        if (!cmd.isCreateCommunity() && !repo.existsByNeIdAndVpnNameAndValidTrue(cmd.getNeId(), cmd.getVpnName()))
+            clashType = (clashType==null?"":clashType)+"COMMUNITYNOTCREATED|";
+        if (repo.existsByNeIdAndVrfNameAndInterfaceIdAndValidTrue(cmd.getNeId(), cmd.getVrfName(), cmd.getInterfaceId()))
+            clashType = (clashType==null?"":clashType)+"VRF/INTERFACEID|";
+        
+        if (clashType != null) {
+            logger.error("CLASH DETECTED!!! :"+clashType);
+        }
+
+        return clashType;
+    }
 }

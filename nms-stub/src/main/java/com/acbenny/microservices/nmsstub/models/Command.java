@@ -22,7 +22,10 @@ public class Command {
     String port;
     int tag;
 
-    boolean valid;
+    boolean valid = true;
+
+    String clashType;
+    String traceId;
 
     public Long getId() {
         return id;
@@ -126,5 +129,21 @@ public class Command {
         this.filterId = filterId;
         this.port = port;
         this.tag = tag;
+    }
+
+    public String getTraceId() {
+        return traceId;
+    }
+
+    public void setTraceId(String traceId) {
+        this.traceId = traceId;
+    }
+
+    public String getClashType() {
+        return clashType;
+    }
+
+    public void setClashType(String clashType) {
+        this.clashType = clashType;
     }
 }

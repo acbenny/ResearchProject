@@ -1,17 +1,22 @@
 [
-    {
-            "key": "config/config-service/data",
-            "flags": 0,
-            "value": "ZmVpZ246CiAgY2lyY3VpdGJyZWFrZXI6CiAgICBlbmFibGVkOiB0cnVlCgpzcHJpbmc6CiAgY2xvdWQ6CiAgICBjb25zdWw6CiAgICAgIGRpc2NvdmVyeToKICAgICAgICBxdWVyeVBhc3Npbmc6IHRydWUKCnNlcnZlcjoKICBlcnJvcjoKICAgIGluY2x1ZGUtbWVzc2FnZTogYWx3YXlzCiAgICBpbmNsdWRlLXN0YWNrdHJhY2U6IGFsd2F5cw=="
-    },
-    {
-            "key": "config/ne-service/data",
-            "flags": 0,
-            "value": "ZGI6CiAgbmFtZTogbmUtc2VydmljZQogIHVzZXI6IGFkbWluCiAgcGFzc3dvcmQ6IGFkbWluCnNlcnZlcjoKICBlcnJvcjoKICAgIGluY2x1ZGUtbWVzc2FnZTogYWx3YXlzCiAgICBpbmNsdWRlLXN0YWNrdHJhY2U6IGFsd2F5cw=="
-    },
-    {
-            "key": "config/order-service/data",
-            "flags": 0,
-            "value": "ZGI6CiAgbmFtZTogb3JkZXItc2VydmljZQogIHVzZXI6IGFkbWluCiAgcGFzc3dvcmQ6IGFkbWluCnNlcnZlcjoKICBlcnJvcjoKICAgIGluY2x1ZGUtbWVzc2FnZTogYWx3YXlzCiAgICBpbmNsdWRlLXN0YWNrdHJhY2U6IGFsd2F5cwpzcHJpbmc6CiAgY2xvdWQ6CiAgICBjb25zdWw6CiAgICAgIGRpc2NvdmVyeToKICAgICAgICBxdWVyeVBhc3Npbmc6IHRydWU="
-    }
+        {
+                "key": "config/config-service/data",
+                "flags": 0,
+                "value": "ZmVpZ246CiAgY2lyY3VpdGJyZWFrZXI6CiAgICBlbmFibGVkOiB0cnVlCiAgY2xpZW50OgogICAgY29uZmlnOgogICAgICBkZWZhdWx0OgogICAgICAgIHJlYWRUaW1lb3V0OiA2MDAwMDAKCnNwcmluZzoKICBjbG91ZDoKICAgIGNvbnN1bDoKICAgICAgZGlzY292ZXJ5OgogICAgICAgIHF1ZXJ5UGFzc2luZzogdHJ1ZQoKc2VydmVyOgogIGVycm9yOgogICAgaW5jbHVkZS1tZXNzYWdlOiBhbHdheXMKICAgIGluY2x1ZGUtc3RhY2t0cmFjZTogYWx3YXlz"
+        },
+        {
+                "key": "config/ne-service/data",
+                "flags": 0,
+                "value": "ZGI6CiAgbmFtZTogbmUtc2VydmljZQogIHVzZXI6IGFkbWluCiAgcGFzc3dvcmQ6IGFkbWluCnNlcnZlcjoKICBlcnJvcjoKICAgIGluY2x1ZGUtbWVzc2FnZTogYWx3YXlzCiAgICBpbmNsdWRlLXN0YWNrdHJhY2U6IGFsd2F5cw=="
+        },
+        {
+                "key": "config/nms-stub/data",
+                "flags": 0,
+                "value": "bWFuYWdlbWVudDoKICBlbmRwb2ludDoKICAgIHJlc3RhcnQ6CiAgICAgIGVuYWJsZWQ6IHRydWUKICBlbmRwb2ludHM6CiAgICB3ZWI6CiAgICAgIGV4cG9zdXJlOgogICAgICAgIGluY2x1ZGU6IGhlYWx0aCxwcm9tZXRoZXVzLHJlc3RhcnQKc2VydmVyOgogIHRvbWNhdDoKICAgIHRocmVhZHM6CiAgICAgIG1heDogMQ=="
+        },
+        {
+                "key": "config/order-service/data",
+                "flags": 0,
+                "value": "ZGI6CiAgbmFtZTogb3JkZXItc2VydmljZQogIHVzZXI6IGFkbWluCiAgcGFzc3dvcmQ6IGFkbWluCnNlcnZlcjoKICBlcnJvcjoKICAgIGluY2x1ZGUtbWVzc2FnZTogYWx3YXlzCiAgICBpbmNsdWRlLXN0YWNrdHJhY2U6IGFsd2F5cwpzcHJpbmc6CiAgY2xvdWQ6CiAgICBjb25zdWw6CiAgICAgIGRpc2NvdmVyeToKICAgICAgICBxdWVyeVBhc3Npbmc6IHRydWUKZmVpZ246CiAgY2xpZW50OgogICAgY29uZmlnOgogICAgICBkZWZhdWx0OgogICAgICAgIHJlYWRUaW1lb3V0OiAxODAwMDAwCm1hbmFnZW1lbnQ6CiAgZW5kcG9pbnRzOgogICAgd2ViOgogICAgICBleHBvc3VyZToKICAgICAgICBpbmNsdWRlOiBoZWFsdGgscHJvbWV0aGV1cw=="
+        }
 ]

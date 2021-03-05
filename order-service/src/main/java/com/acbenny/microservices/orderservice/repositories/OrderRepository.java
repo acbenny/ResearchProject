@@ -30,6 +30,9 @@ public class OrderRepository {
     public ConfigServiceClient configService;
 
     @Autowired
+    public NMSStubClient nmsStubClient;
+
+    @Autowired
     public OrderRepository(ODatabasePool dbPool) {
         db = dbPool.acquire();
     }
@@ -159,6 +162,7 @@ public class OrderRepository {
 	}
 
 	public Object[] reset() {
+        nmsStubClient.restart();
         db.activateOnCurrentThread();
         db.command("DELETE VERTEX V");
         db.command("select sequence('svcIdSeq').reset()");
