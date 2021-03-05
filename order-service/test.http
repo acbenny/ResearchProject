@@ -46,4 +46,10 @@ content-type: application/json
 
 ###
 
-GET http://devbox:28080/order/id/101
+POST http://devbox:28080/order/createRouteAndConfig HTTP/1.1
+content-type: application/json
+
+{
+    "vpnName": "voip-1",
+    "neIDs": [102]
+}

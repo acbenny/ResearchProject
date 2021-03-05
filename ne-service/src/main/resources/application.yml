@@ -1,6 +1,8 @@
 spring:
   application:
     name: ne-service
+  config:
+    import: "optional:consul:"
   cloud:
     consul:
       enabled: true

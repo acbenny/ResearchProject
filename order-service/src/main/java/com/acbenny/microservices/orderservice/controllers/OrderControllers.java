@@ -6,12 +6,14 @@ import com.acbenny.microservices.orderservice.models.Order;
 import com.acbenny.microservices.orderservice.repositories.OrderRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import brave.Tracer;
 import io.micrometer.core.annotation.Timed;
@@ -69,9 +71,13 @@ public class OrderControllers {
 
     @PostMapping("/createRouteAndConfig")
     public String createOrdRouteConfig(@RequestBody Order ord) {
-        String serviceId = repo.createOrder(ord);
-        repo.routeOrder(serviceId,ord.getNeIds());
-        return serviceId + " : " + repo.configOrder(serviceId) + " Trace ID: " + tracer.currentSpan().context().traceIdString();
+        try{
+            String serviceId = repo.createOrder(ord);
+            repo.routeOrder(serviceId,ord.getNeIds());
+            return serviceId + " : " + repo.configOrder(serviceId) + " Trace ID: " + tracer.currentSpan().context().traceIdString();
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Trace ID:"+tracer.currentSpan().context().traceIdString()+" : " + e.getClass().getSimpleName());
+        }
     }
 
     @GetMapping("/reset")
